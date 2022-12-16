@@ -1,0 +1,30 @@
+DATA : l_xml       TYPE xstring.
+      DATA: g_xml_type TYPE salv_bs_constant.
+      cl_salv_table=>factory(
+      IMPORTING
+        r_salv_table   = DATA(lo_alv)
+      CHANGING
+        t_table        = lt_gst ).
+
+      g_xml_type = if_salv_bs_xml=>c_type_mhtml.
+      l_xml = lo_alv->to_xml( xml_type = g_xml_type ).
+
+*...Filedownload
+      DATA:
+        lt_choice TYPE if_salv_bs_xml=>t_type_xml_choice,
+        ls_choice TYPE if_salv_bs_xml=>s_type_xml_choice.
+
+      CLEAR lt_choice.
+      FREE lt_choice.
+
+      lt_choice = cl_salv_bs_xml_utils=>get_transformations( ls_choice ).
+
+      READ TABLE lt_choice INTO ls_choice WITH KEY xml_type = g_xml_type.
+      IF sy-subrc EQ 0.
+        cl_salv_export_xml_dialog=>download(
+                          EXPORTING
+                            s_xml_choice = ls_choice
+                            xml          = l_xml
+                          ).
+      ENDIF.
+    ENDIF.
